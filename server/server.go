@@ -6,40 +6,28 @@ import (
   "fmt"
   "github.com/go-martini/martini"
   "github.com/martini-contrib/render"
+  "github.com/gophergala/sbuca/x509util"
   "net/http"
   "encoding/pem"
   "crypto/x509"
-  "io/ioutil"
   "crypto/rand"
   "crypto/rsa"
 )
 
 func GetCACert() *x509.Certificate {
-  data, err := ioutil.ReadFile("ca/ca.crt")
+  cert, err := x509util.PemFileToCertificate("ca/ca.crt")
   if err != nil {
     panic(err)
   }
-  pemBlock, _ := pem.Decode(data)
-  cert, err := x509.ParseCertificate(pemBlock.Bytes)
-  if err != nil {
-    panic(err)
-  }
-
   return cert
 }
 
 func GetCAPrivateKey() *rsa.PrivateKey {
-  data, err := ioutil.ReadFile("ca/ca.key")
+  key, err := x509util.PemFileToRsaPrivateKey("ca/ca.key")
   if err != nil {
     panic(err)
   }
-  pemBlock, _ := pem.Decode(data)
-  privKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
-  if err != nil {
-    panic(err)
-  }
-
-  return privKey
+  return key
 }
 
 func Run() {
