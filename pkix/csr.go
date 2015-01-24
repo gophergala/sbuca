@@ -10,15 +10,15 @@ import (
 
 type CertificateRequest struct {
 
-  derBytes []byte
+  pemBytes []byte
 
   Csr *x509.CertificateRequest
 
 }
 
-func NewCertificateRequestFromPEM(derBytes []byte) (*CertificateRequest, error) {
+func NewCertificateRequestFromPEM(pemBytes []byte) (*CertificateRequest, error) {
 
-  pemBlock, _ := pem.Decode(derBytes)
+  pemBlock, _ := pem.Decode(pemBytes)
   if pemBlock == nil {
     return nil, errors.New("PEM decode failed")
   }
@@ -29,7 +29,7 @@ func NewCertificateRequestFromPEM(derBytes []byte) (*CertificateRequest, error) 
   }
 
   certificateRequest := &CertificateRequest{
-    derBytes: derBytes,
+    pemBytes: pemBytes,
     Csr: csr,
   }
 

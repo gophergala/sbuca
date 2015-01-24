@@ -13,10 +13,10 @@ type Key struct {
   PrivateKey crypto.PrivateKey
 }
 
-func NewKeyFromPrivateKeyPEM(derBytes []byte) (*Key, error) {
+func NewKeyFromPrivateKeyPEM(pemBytes []byte) (*Key, error) {
   // currently we only support rsa
 
-  pemBlock, _ := pem.Decode(derBytes)
+  pemBlock, _ := pem.Decode(pemBytes)
   if pemBlock == nil {
     return nil, errors.New("decode pem failed")
   }

@@ -1,25 +1,43 @@
-package main
+package ca
 
 import (
   "strconv"
+  "time" 
   //"errors"
-  "fmt"
-  "path/filepath"
-  "os"
   "math/big"
   "io/ioutil"
   "strings"
+  "github.com/gophergala/sbuca/pkix"
+  "crypto/x509"
+  "crypto/rand"
 )
 
 
 type CA struct {
   RootDir string
+  Certificate *pkix.Certificate
+  Key *pkix.Key
 }
-func NewCA(rootDir string) *CA {
-  return &CA{RootDir: rootDir}
+func NewCA(rootDir string) (*CA, error) {
+
+  certificate, err := pkix.NewCertificateFromPEMFile(rootDir + "/ca/ca.crt")
+  if err != nil {
+    return nil, err
+  }
+  key, err := pkix.NewKeyFromPrivateKeyPEMFile(rootDir + "/ca/ca.key")
+  if err != nil {
+    return nil, err
+  }
+  newCA := &CA{
+    RootDir: rootDir,
+    Certificate: certificate,
+    Key: key,
+  }
+
+  return newCA, nil
 }
 func (ca *CA) GetSerialNumber() (big.Int, error) {
-  snStr, err := ioutil.ReadFile(ca.RootDir + "/ca.srl")
+  snStr, err := ioutil.ReadFile(ca.RootDir + "/ca/ca.srl")
   if err != nil {
     panic(err)
   }
@@ -47,17 +65,30 @@ func (ca *CA) IncreaseSerialNumber() error {
 
   return nil
 }
-//func (ca *CA) Init {
-//}
-//func (ca *CA) GetSerialNumber {
-//}
+func (ca *CA) IssueCertificate(csr *pkix.CertificateRequest) (*pkix.Certificate, error) {
 
-func main() {
+  notBefore := time.Now()
+  notAfter  := notBefore.Add(time.Hour*365*24)
+  keyUsage  := x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
+  extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
+  template := &x509.Certificate{
+    SerialNumber: big.NewInt(1),
+    Subject: csr.Csr.Subject,
+    NotBefore: notBefore,
+    NotAfter: notAfter,
+    KeyUsage: keyUsage,
+    ExtKeyUsage: extKeyUsage,
+    BasicConstraintsValid: true,
+  }
 
-  rootDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-  ca := NewCA(rootDir)
-  fmt.Println(ca.RootDir)
-  sn, _ := ca.GetSerialNumber()
-  fmt.Println(sn.Int64())
-  ca.IncreaseSerialNumber()
+  derBytes, err := x509.CreateCertificate(rand.Reader, template, ca.Certificate.Crt, ca.Key.PublicKey, ca.Key.PrivateKey)
+  if err != nil {
+    return nil, err
+  }
+
+  crt, err := pkix.NewCertificateFromDER(derBytes)
+  if err != nil {
+    return nil, err
+  }
+  return crt, nil
 }

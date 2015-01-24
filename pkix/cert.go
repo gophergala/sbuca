@@ -10,15 +10,29 @@ import (
 
 type Certificate struct {
 
-  derBytes []byte
+  DerBytes []byte
 
   Crt *x509.Certificate
 
 }
 
-func NewCertificateFromPEM(derBytes []byte) (*Certificate, error) {
+func NewCertificateFromDER(derBytes []byte) (*Certificate, error) {
 
-  pemBlock, _ := pem.Decode(derBytes)
+  crt, err := x509.ParseCertificate(derBytes)
+  if err != nil {
+    return nil, err
+  }
+
+  cert := &Certificate{
+    DerBytes: derBytes,
+    Crt: crt,
+  }
+
+  return cert, nil
+}
+func NewCertificateFromPEM(pemBytes []byte) (*Certificate, error) {
+
+  pemBlock, _ := pem.Decode(pemBytes)
   if pemBlock == nil {
     return nil, errors.New("PEM decode failed")
   }
@@ -29,7 +43,7 @@ func NewCertificateFromPEM(derBytes []byte) (*Certificate, error) {
   }
 
   cert := &Certificate{
-    derBytes: derBytes,
+    DerBytes: pemBlock.Bytes,
     Crt: crt,
   }
 
