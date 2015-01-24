@@ -15,6 +15,7 @@ import (
 
 type CA struct {
   RootDir string
+  CertStore *CertStore
   Certificate *pkix.Certificate
   Key *pkix.Key
 }
@@ -28,13 +29,22 @@ func NewCA(rootDir string) (*CA, error) {
   if err != nil {
     return nil, err
   }
+
+  certStore := NewCertStore(rootDir + "/certs")
   newCA := &CA{
     RootDir: rootDir,
+    CertStore: certStore,
     Certificate: certificate,
     Key: key,
   }
 
   return newCA, nil
+}
+func (ca *CA) GetCertificate(id int64) (*pkix.Certificate, error){
+  return ca.CertStore.Get(id)
+}
+func (ca *CA) PutCertificate(id int64, cert *pkix.Certificate) error {
+  return ca.CertStore.Put(id, cert)
 }
 func (ca *CA) GetSerialNumber() (*big.Int, error) {
   snStr, err := ioutil.ReadFile(ca.RootDir + "/ca/ca.srl")
@@ -89,13 +99,21 @@ func (ca *CA) IssueCertificate(csr *pkix.CertificateRequest) (*pkix.Certificate,
     return nil, err
   }
 
+  // increase sn
   if err = ca.IncreaseSerialNumber(); err != nil {
     return nil, err
   }
 
-  crt, err := pkix.NewCertificateFromDER(derBytes)
+  // gen new cert
+  cert, err := pkix.NewCertificateFromDER(derBytes)
   if err != nil {
     return nil, err
   }
-  return crt, nil
+
+  // put in certstore
+  if err = ca.PutCertificate(serialNumber.Int64(), cert); err != nil {
+    return nil, err
+  }
+
+  return cert, nil
 }

@@ -8,6 +8,7 @@ import (
   "net/http"
   "github.com/gophergala/sbuca/pkix"
   "github.com/gophergala/sbuca/ca"
+  "strconv"
 )
 
 
@@ -21,14 +22,38 @@ func Run() {
     return "hello\n"
   })
   m.Get("/certificates/:id", func(params martini.Params, r render.Render) {
-  })
-  m.Get("/certificates", func(params martini.Params, r render.Render) {
-    r.JSON(200, map[string]interface{}{
-      "certificate": map[string]interface{}{
-        "id": "1",
-        "crt": "2",
-      },
-    })
+
+    newCA, err := ca.NewCA(".")
+    if err != nil {
+      panic(err)
+    }
+
+    id := params["id"]
+    idInt, err := strconv.Atoi(id)
+    if err != nil {
+      r.JSON(401, map[string]interface{}{
+        "result": "wrong id",
+      })
+      return
+    }
+    cert, err := newCA.GetCertificate(int64(idInt))
+    if err != nil {
+      r.JSON(401, map[string]interface{}{
+        "result": "cannot get cert",
+      })
+      return
+    }
+
+    pem, err := cert.ToPEM()
+    if err != nil {
+      r.JSON(401, map[string]interface{}{
+        "result": "cannot get cert",
+      })
+      return
+    }
+
+    r.Data(200, pem)
+
   })
   m.Post("/certificates", func(req *http.Request, params martini.Params, r render.Render) {
 
