@@ -44,25 +44,6 @@ func Run() {
       panic(err)
     }
 
-    /*
-    notAfter  := notBefore.Add(time.Hour*365*24)
-    keyUsage  := x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
-    extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
-    template := &x509.Certificate{
-      SerialNumber: big.NewInt(1),
-      Subject: csr.Csr.Subject,
-      NotBefore: notBefore,
-      NotAfter: notAfter,
-      KeyUsage: keyUsage,
-      ExtKeyUsage: extKeyUsage,
-      BasicConstraintsValid: true,
-    }
-
-    der, err := x509.CreateCertificate(rand.Reader, template, caCert.Crt, caKey.PublicKey, caKey.PrivateKey)
-    if err != nil {
-      panic(err)
-    }
-    */
     cert, err := newCA.IssueCertificate(csr)
     if err != nil {
       panic(err)

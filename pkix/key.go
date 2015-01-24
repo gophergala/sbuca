@@ -6,11 +6,16 @@ import (
   "io/ioutil"
   "errors"
   "crypto/x509"
+  "crypto/rsa"
 )
 
 type Key struct {
+  /*
+  PublicKey *crypto.PublicKey
+  PrivateKey *crypto.PrivateKey
+  */
   PublicKey crypto.PublicKey
-  PrivateKey crypto.PrivateKey
+  PrivateKey *rsa.PrivateKey
 }
 
 func NewKeyFromPrivateKeyPEM(pemBytes []byte) (*Key, error) {
@@ -28,7 +33,7 @@ func NewKeyFromPrivateKeyPEM(pemBytes []byte) (*Key, error) {
 
   newKey := &Key{
     PrivateKey: privateKey,
-    PublicKey: privateKey.PublicKey,
+    PublicKey: privateKey.Public(),
   }
 
   return newKey, nil

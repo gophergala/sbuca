@@ -36,7 +36,7 @@ func NewCA(rootDir string) (*CA, error) {
 
   return newCA, nil
 }
-func (ca *CA) GetSerialNumber() (big.Int, error) {
+func (ca *CA) GetSerialNumber() (*big.Int, error) {
   snStr, err := ioutil.ReadFile(ca.RootDir + "/ca/ca.srl")
   if err != nil {
     panic(err)
@@ -47,11 +47,10 @@ func (ca *CA) GetSerialNumber() (big.Int, error) {
   }
   sn := big.NewInt(int64(snInt))
 
-  return *sn, nil
+  return sn, nil
 }
 func (ca *CA) IncreaseSerialNumber() error {
-  ioutil.ReadFile(ca.RootDir + "/ca.srl")
-  snStr, err := ioutil.ReadFile(ca.RootDir + "/ca.srl")
+  snStr, err := ioutil.ReadFile(ca.RootDir + "/ca/ca.srl")
   if err != nil {
     panic(err)
   }
@@ -60,19 +59,23 @@ func (ca *CA) IncreaseSerialNumber() error {
     panic(err)
   }
   nextSnInt := snInt + 1
-  nextSnStr := strconv.Itoa(nextSnInt)
-  ioutil.WriteFile(ca.RootDir + "/ca.srl", []byte(nextSnStr), 0600)
+  nextSnStr := strconv.Itoa(nextSnInt) + "\n"
+  ioutil.WriteFile(ca.RootDir + "/ca/ca.srl", []byte(nextSnStr), 0600)
 
   return nil
 }
 func (ca *CA) IssueCertificate(csr *pkix.CertificateRequest) (*pkix.Certificate, error) {
 
+  serialNumber, err := ca.GetSerialNumber()
+  if err != nil {
+    return nil, err
+  }
   notBefore := time.Now()
   notAfter  := notBefore.Add(time.Hour*365*24)
   keyUsage  := x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
   extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
   template := &x509.Certificate{
-    SerialNumber: big.NewInt(1),
+    SerialNumber: serialNumber,
     Subject: csr.Csr.Subject,
     NotBefore: notBefore,
     NotAfter: notAfter,
@@ -83,6 +86,10 @@ func (ca *CA) IssueCertificate(csr *pkix.CertificateRequest) (*pkix.Certificate,
 
   derBytes, err := x509.CreateCertificate(rand.Reader, template, ca.Certificate.Crt, ca.Key.PublicKey, ca.Key.PrivateKey)
   if err != nil {
+    return nil, err
+  }
+
+  if err = ca.IncreaseSerialNumber(); err != nil {
     return nil, err
   }
 
