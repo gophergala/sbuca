@@ -26,6 +26,7 @@ Send a Post request to the sbuca server, you'll get the signed cert file
 ### Init the server
 
     mkdir ca certs
+    echo 01 > ca/ca.srl
     openssl genrsa -out ca/ca.key 2048
     openssl req -x509 -new -key ca/ca.key -out ca/ca.crt
 
@@ -51,4 +52,4 @@ Congrat, `myserver.crt` is the signed certification
 
 1. mkdir ca certs automatically if no exists
 2. make the return format consistent (all json by default, use ?format=file to return a file
-3. deploy a try server, try.sbuca.com, so that we can use the api with hosting our own CA
+3. dockerfile
