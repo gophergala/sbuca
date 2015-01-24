@@ -2,16 +2,35 @@
 
 Simple But Useful Certificate Authority
 
+
+## Quick Start
+
+Let's tried the hosted sbuca server
+
+Generate rsakey & certificate request
+
+    openssl genrsa -out server.key
+    openssl req -new -key server.key -out server.csr
+
+Send a Post request to the sbuca server, you'll get the signed cert file
+
+    curl try.sbuca.com:3000/certificates -XPOST --data-urlencode csr@server.csr > server.crt
+
+
 ## Installation
 
-    go install github.com/gophergala/sbuca
-
+    go get github.com/gophergala/sbuca
 
 ## Usage
 
-### Run the server
+### Init the server
 
     mkdir ca certs
+    openssl genrsa -out ca/ca.key 2048
+    openssl req -x509 -new -key ca/ca.key -out ca/ca.crt
+
+### Run the server
+
     sbuca server
 
 
