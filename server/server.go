@@ -6,7 +6,6 @@ import (
   "github.com/martini-contrib/render"
   //"github.com/gophergala/sbuca/x509util"
   "net/http"
-  "encoding/pem"
   "github.com/gophergala/sbuca/pkix"
   "github.com/gophergala/sbuca/ca"
 )
@@ -49,11 +48,10 @@ func Run() {
       panic(err)
     }
 
-    pemB := &pem.Block{
-      Type: "CERTIFICATE",
-      Bytes: cert.DerBytes,
+    certPem, err := cert.ToPEM()
+    if err != nil {
+      panic(err)
     }
-    certPem := pem.EncodeToMemory(pemB)
     /*
     r.JSON(200, map[string]interface{}{
       "certificate": map[string]interface{}{

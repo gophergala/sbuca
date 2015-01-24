@@ -59,5 +59,14 @@ func NewCertificateFromPEMFile(filename string) (*Certificate, error) {
   return NewCertificateFromPEM(data)
 }
 
+func (certificate *Certificate) ToPEM() ([]byte, error) {
 
+  pemBlock := &pem.Block{
+    Type: "CERTIFICATE",
+    Bytes: certificate.DerBytes,
+  }
 
+  pemBytes := pem.EncodeToMemory(pemBlock)
+
+  return pemBytes, nil
+}
