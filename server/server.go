@@ -6,29 +6,14 @@ import (
   "fmt"
   "github.com/go-martini/martini"
   "github.com/martini-contrib/render"
-  "github.com/gophergala/sbuca/x509util"
+  //"github.com/gophergala/sbuca/x509util"
   "net/http"
   "encoding/pem"
   "crypto/x509"
   "crypto/rand"
-  "crypto/rsa"
+  "github.com/gophergala/sbuca/pkix"
 )
 
-func GetCACert() *x509.Certificate {
-  cert, err := x509util.PemFileToCertificate("ca/ca.crt")
-  if err != nil {
-    panic(err)
-  }
-  return cert
-}
-
-func GetCAPrivateKey() *rsa.PrivateKey {
-  key, err := x509util.PemFileToRsaPrivateKey("ca/ca.key")
-  if err != nil {
-    panic(err)
-  }
-  return key
-}
 
 func Run() {
   fmt.Print("start...")
@@ -52,18 +37,18 @@ func Run() {
   m.Post("/certificates", func(req *http.Request, params martini.Params, r render.Render) {
 
     csrString := req.PostFormValue("csr")
-    pemBlock, _ := pem.Decode([]byte(csrString))
-    if pemBlock == nil {
-      fmt.Println("pem decode failed")
-    }
-    csr, err := x509.ParseCertificateRequest(pemBlock.Bytes)
+    csr, err := pkix.NewCertificateRequestFromPEM([]byte(csrString))
     if err != nil {
-      panic(csr)
+      panic(err)
     }
-
-    caCert := GetCACert()
-    caPrivKey := GetCAPrivateKey()
-    fmt.Println(caCert.Version)
+    caCert, err := pkix.NewCertificateFromPEMFile("ca/ca.crt")
+    if err != nil {
+      panic(err)
+    }
+    caKey, err := pkix.NewKeyFromPrivateKeyPEMFile("ca/ca.key")
+    if err != nil {
+      panic(err)
+    }
 
     notBefore := time.Now()
     notAfter  := notBefore.Add(time.Hour*365*24)
@@ -71,7 +56,7 @@ func Run() {
     extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
     template := &x509.Certificate{
       SerialNumber: big.NewInt(1),
-      Subject: csr.Subject,
+      Subject: csr.Csr.Subject,
       NotBefore: notBefore,
       NotAfter: notAfter,
       KeyUsage: keyUsage,
@@ -79,15 +64,10 @@ func Run() {
       BasicConstraintsValid: true,
     }
 
-    der, err := x509.CreateCertificate(rand.Reader, template, caCert, caPrivKey.Public(), caPrivKey)
+    der, err := x509.CreateCertificate(rand.Reader, template, caCert.Crt, caKey.PublicKey, caKey.PrivateKey)
     if err != nil {
       panic(err)
     }
-
-    //certOut, err := os.Create("cert.pem")
-    //if err != nil {
-    //  panic(err)
-    //}
 
     pemB := &pem.Block{
       Type: "CERTIFICATE",
