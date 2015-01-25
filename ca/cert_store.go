@@ -49,3 +49,19 @@ func (store *CertStore) Put(id int64, cert *pkix.Certificate) error {
 
   return nil
 }
+
+func (store *CertStore) GetAllNames() ([]string, error) {
+
+  files, err := ioutil.ReadDir(store.RootDir + "/")
+  if err != nil {
+    return nil, err
+  }
+  names := make([]string, len(files))
+  for _, f := range files {
+    names = append(names, f.Name())
+  }
+
+  return names, nil
+
+}
+  // should limit to 100 FIXME

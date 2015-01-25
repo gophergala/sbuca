@@ -18,10 +18,11 @@ func Run(addr string) {
   m := martini.Classic()
   m.Use(render.Renderer())
 
+  //FIXME
   ca.NewCA(".")
 
   m.Get("/", func() string {
-    return "hello\n"
+    return "Hello sbuca"
   })
   m.Get("/certificates/:id", func(params martini.Params, r render.Render) {
 
