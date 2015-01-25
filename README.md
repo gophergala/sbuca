@@ -22,19 +22,19 @@ Generate a Certificate Request
 
 Submit the Certificate Request to the hosted server and get the Certificate
 
-    sbuca submitcsr --host try.sbuca.com:8600 > test.crt
+    sbuca submitcsr --host try.sbuca.com:8600 test.csr > test.crt
 
 In case you want to get the Certificate in another computer, you can add `--format id`, then the output will become the id (serial number) of the Certificate
 
-    subca submitcsr --host try.sbuca.com:8600 --format id 
+    sbuca submitcsr --host try.sbuca.com:8600 --format id test.csr 
 
 Then you can get the certificate in another computer
 
-    subca getcrt --host try.sbuca.com:8600 [ID] > test.crt
+    sbuca getcrt --host try.sbuca.com:8600 [ID] > test.crt
 
 To get CA's certificate
 
-    subca getcacrt --host try.sbuca.com:8600 > ca.crt
+    sbuca getcacrt --host try.sbuca.com:8600 > ca.crt
 
 
 ## Usage
@@ -84,7 +84,7 @@ By default, it'll output the signed Certificate to STDIN
 
 If you want to get the ID instead, you can add `--format id`
 
-    sbuca submitcsr --host localhost:8600 --format id test.csr > test.crt
+    sbuca submitcsr --host localhost:8600 --format id test.csr
 
 We can use this `id` to get the certificate in another computer
 
@@ -94,18 +94,16 @@ In case you want to use curl to submit the csr, it'll output a JSON by default
 
 If you want to download the Certificate instead of the JSON, you can add `?format=file`
 
-    curl localhost:8600/certificates -XPOST --data-urlencode csr@test.csr > test.crt
+    curl localhost:8600/certificates?format=file -XPOST --data-urlencode csr@test.csr > test.crt
 
 
 ### Get the Certificate by ID
 
     sbuca getcrt --host localhost:8600 [ID] > test.crt
 
-You can also use curl to get the Certificate (I use ID=20 as example)
+You can also use curl to get the Certificate (I use ID=2 as example)
 
-    curl localhost:8600/certificates/20?format=file > test.crt
-
-Congrat, `myserver.crt` is the signed certification
+    curl localhost:8600/certificates/2?format=file > test.crt
 
 
 ### Get CA's Certificate
