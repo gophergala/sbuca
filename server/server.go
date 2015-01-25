@@ -18,6 +18,8 @@ func Run() {
   m := martini.Classic()
   m.Use(render.Renderer())
 
+  ca.NewCA(".")
+
   m.Get("/", func() string {
     return "hello\n"
   })

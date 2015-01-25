@@ -4,6 +4,7 @@ import (
 
   "errors"
   "crypto/x509"
+  "crypto/x509/pkix"
   "io/ioutil"
   "encoding/pem"
 )
@@ -16,6 +17,11 @@ type Certificate struct {
 
 }
 
+func GenSubject(organization string) pkix.Name {
+  return pkix.Name {
+    Organization: []string{organization},
+  }
+}
 func NewCertificateFromDER(derBytes []byte) (*Certificate, error) {
 
   crt, err := x509.ParseCertificate(derBytes)
@@ -69,4 +75,12 @@ func (certificate *Certificate) ToPEM() ([]byte, error) {
   pemBytes := pem.EncodeToMemory(pemBlock)
 
   return pemBytes, nil
+}
+func (certificate *Certificate) ToPEMFile(filename string) (error) {
+  pemBytes, err := certificate.ToPEM()
+  if err != nil {
+    return err 
+  }
+
+  return ioutil.WriteFile(filename, pemBytes, 0400)
 }
