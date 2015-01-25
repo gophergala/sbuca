@@ -2,6 +2,15 @@
 
 Simple But Useful Certificate Authority
 
+When developing, it's always a pain to generate certificate for SSL/TLS usage. `sbuca` is the simple CA that helps you to generate what you just need in a painless way.
+
+Current features:
+
+1. generate a rsa key (no need to connect to the server)
+2. generate a certification request (no need to connect to the server)
+3. submit the certification request to the sbuca CA server, and get the signed Certificate
+4. get CA's certification 
+
 
 ## Installation
 
@@ -28,9 +37,9 @@ In case you want to get the Certificate in another computer, you can add `--form
 
     sbuca submitcsr --host try.sbuca.com:8600 --format id test.csr 
 
-Then you can get the certificate in another computer
+Then you can get the certificate in another computer (I use ID=2 as example here)
 
-    sbuca getcrt --host try.sbuca.com:8600 [ID] > test.crt
+    sbuca getcrt --host try.sbuca.com:8600 2 > test.crt
 
 To get CA's certificate
 
