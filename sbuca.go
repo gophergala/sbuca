@@ -8,6 +8,7 @@ import (
   "os"
   "net/http"
   "net/url"
+  "encoding/json"
 )
 
 func main() {
@@ -91,11 +92,22 @@ func main() {
           Name: "host",
           Usage: "Host ip & port",
         },
+        cli.StringFlag {
+          Name: "output",
+          Value: "cert",
+          Usage: "output data: cert(default) or id",
+        },
       },
       Action: func (c *cli.Context){
         host := c.String("host")
         if host == "" {
           fmt.Fprintln(os.Stderr, "[ERROR] Requere host as parameter")
+          return
+        }
+
+        output := c.String("output")
+        if output != "cert" && output != "id" {
+          fmt.Fprintln(os.Stderr, "[ERROR] output should be 'cert' or 'id'")
           return
         }
 
@@ -129,7 +141,18 @@ func main() {
           fmt.Fprintln(os.Stderr, "[ERROR] Failed to request: " + err.Error())
           return
         }
-        fmt.Println(resp)
+        decoder := json.NewDecoder(resp.Body)
+        respData := make(map[string]map[string]interface{})
+        if err := decoder.Decode(&respData); err != nil {
+          panic(err)
+        }
+
+        if output == "cert" {
+          fmt.Print(respData["certificate"]["crt"])
+        }
+        if output == "id" {
+          fmt.Println(respData["certificate"]["id"])
+        }
       },
     },
 
