@@ -4,7 +4,10 @@ import (
   "fmt"
   "github.com/codegangsta/cli"
   "github.com/gophergala/sbuca/server"
+  "github.com/gophergala/sbuca/pkix"
   "os"
+  "net/http"
+  "net/url"
 )
 
 func main() {
@@ -16,9 +19,124 @@ func main() {
 
     {
       Name: "server",
+      Usage: "Run a CA server",
       Action: func(c *cli.Context) {
-        fmt.Println("running")
-        server.Run()
+        host := os.Getenv("HOST")
+        port := "8600"
+        server.Run(host + ":" + port)
+      },
+    },
+
+    {
+      Name: "genkey",
+      Usage: "Generate a RSA Private Key to STDOUT",
+      Action: func (c *cli.Context) {
+        key, err := pkix.NewKey()
+        if err != nil {
+          panic(err)
+        }
+
+        pem, err := key.ToPEM()
+        if err != nil {
+          panic(err)
+        }
+
+        fmt.Print(string(pem))
+      },
+    },
+
+    {
+      Name: "gencsr",
+      Usage: "Generate a Certificate Request to STDOUT",
+      Flags: []cli.Flag {
+        cli.StringFlag {
+          Name: "key",
+          Usage: "RSA Private Key",
+        },
+      },
+      Action: func (c *cli.Context) {
+        keyName := c.String("key")
+        if keyName == "" {
+          fmt.Fprintln(os.Stderr, "[ERROR] Requere private key as parameter")
+          return
+        }
+
+        key, err := pkix.NewKeyFromPrivateKeyPEMFile(keyName) 
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to generate CSR: " + err.Error())
+          return
+        }
+
+        csr, err := pkix.NewCertificateRequest(key)
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to generate CSR: " + err.Error())
+          return
+        }
+
+        pem, err := csr.ToPEM()
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to generate CSR: " + err.Error())
+          return
+        }
+
+        fmt.Print(string(pem))
+      },
+    },
+
+    {
+      Name: "submitcsr",
+      Usage: "Submit a Certificate Request to CA",
+      Flags: []cli.Flag {
+        cli.StringFlag {
+          Name: "host",
+          Usage: "Host ip & port",
+        },
+      },
+      Action: func (c *cli.Context){
+        host := c.String("host")
+        if host == "" {
+          fmt.Fprintln(os.Stderr, "[ERROR] Requere host as parameter")
+          return
+        }
+
+        args := c.Args()
+        if len(args) == 0 {
+          fmt.Fprintln(os.Stderr, "[ERROR] Should provide csr")
+          return
+        }
+        csrName := c.Args().First()
+
+        csr, err := pkix.NewCertificateRequestFromPEMFile(csrName)
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to parse CSR: " + err.Error())
+          return
+        }
+
+        //resp, err := http.Post("http://example.com/upload", "application/json", &buf)
+        //var data interface{}
+        pem, err := csr.ToPEM()
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to parse CSR: " + err.Error())
+          return
+        }
+
+        data := make(url.Values)
+        data.Add("csr", string(pem))
+
+        //resp, err := http.Post("http://" + host + "/certificates", "text/plain", values.Encode())
+        resp, err := http.PostForm("http://" + host + "/certificates", data)
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to request: " + err.Error())
+          return
+        }
+        fmt.Println(resp)
+      },
+    },
+
+    {
+      Name: "getcrt",
+      Usage: "Get a Certificate from CA and output to STDOUT",
+      Action: func (c *cli.Context){
       },
     },
 

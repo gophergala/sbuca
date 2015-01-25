@@ -2,6 +2,7 @@ package pkix
 
 import (
 
+  "math/big"
   "errors"
   "crypto/x509"
   "crypto/x509/pkix"
@@ -83,4 +84,7 @@ func (certificate *Certificate) ToPEMFile(filename string) (error) {
   }
 
   return ioutil.WriteFile(filename, pemBytes, 0400)
+}
+func (certificate *Certificate) GetSerialNumber() *big.Int {
+  return certificate.Crt.SerialNumber
 }
