@@ -24,7 +24,10 @@ func Run(addr string) {
   m.Get("/", func() string {
     return "Hello sbuca"
   })
-  m.Get("/ca/certificate", func(params martini.Params, r render.Render) {
+  m.Get("/ca/certificate", func(req *http.Request, params martini.Params, r render.Render) {
+
+    format := req.URL.Query().Get("format")
+
     newCA, err := ca.NewCA(".")
     if err != nil {
       panic(err)
@@ -35,13 +38,19 @@ func Run(addr string) {
       panic(err)
     }
 
-    r.JSON(200, map[string]interface{}{
-      "ca": map[string]interface{}{
-        "crt": string(pem),
-      },
-    })
+    if format == "file" {
+      r.Data(200, pem)
+    } else {
+      r.JSON(200, map[string]interface{}{
+        "ca": map[string]interface{}{
+          "crt": string(pem),
+        },
+      })
+    }
   })
-  m.Get("/certificates/:id", func(params martini.Params, r render.Render) {
+  m.Get("/certificates/:id", func(req *http.Request, params martini.Params, r render.Render) {
+
+    format := req.URL.Query().Get("format")
 
     newCA, err := ca.NewCA(".")
     if err != nil {
@@ -72,19 +81,24 @@ func Run(addr string) {
       return
     }
 
-    //r.Data(200, pem)
-    r.JSON(200, map[string]interface{}{
-      "certificate": map[string]interface{}{
-        "id": cert.GetSerialNumber().Int64(),
-        "crt": string(pem),
-        //"csr": csr,
-      },
-    })
+    if format == "file" {
+      r.Data(200, pem)
+    } else {
+      r.JSON(200, map[string]interface{}{
+        "certificate": map[string]interface{}{
+          "id": cert.GetSerialNumber().Int64(),
+          "crt": string(pem),
+          //"csr": csr,
+        },
+      })
+    }
 
   })
   m.Post("/certificates", func(req *http.Request, params martini.Params, r render.Render) {
 
     csrString := req.PostFormValue("csr")
+    format := req.URL.Query().Get("format")
+
     csr, err := pkix.NewCertificateRequestFromPEM([]byte(csrString))
     if err != nil {
       panic(err)
@@ -104,14 +118,17 @@ func Run(addr string) {
     if err != nil {
       panic(err)
     }
-    r.JSON(200, map[string]interface{}{
-      "certificate": map[string]interface{}{
-        "id": cert.GetSerialNumber().Int64(),
-        "crt": string(certPem),
-        //"csr": csr,
-      },
-    })
-    //r.Data(200, certPem)
+    if format == "file" {
+      r.Data(200, certPem)
+    } else {
+      r.JSON(200, map[string]interface{}{
+        "certificate": map[string]interface{}{
+          "id": cert.GetSerialNumber().Int64(),
+          "crt": string(certPem),
+          //"csr": csr,
+        },
+      })
+    }
   })
 
   m.RunOnAddr(addr)

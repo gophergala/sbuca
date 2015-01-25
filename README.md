@@ -50,6 +50,5 @@ Congrat, `myserver.crt` is the signed certification
 
 ## TODO
 
-1. mkdir ca certs automatically if no exists
-2. make the return format consistent (all json by default, use ?format=file to return a file
-3. dockerfile
+1. make the return format consistent (all json by default, use ?format=file to return a file
+2. dockerfile
