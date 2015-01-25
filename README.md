@@ -11,6 +11,14 @@ Current features:
 3. submit the certification request to the sbuca CA server, and get the signed Certificate
 4. get CA's certification 
 
+### Video
+
+<http://youtu.be/6d83GZpt0O8>
+
+### ChallangePost
+
+<http://gopher-gala.challengepost.com/submissions/32201-sbuca>
+
 
 ## Installation
 
