@@ -147,10 +147,10 @@ func main() {
           panic(err)
         }
 
-        if output == "cert" {
+        if format == "cert" {
           fmt.Print(respData["certificate"]["crt"])
         }
-        if output == "id" {
+        if format == "id" {
           fmt.Println(respData["certificate"]["id"])
         }
       },
