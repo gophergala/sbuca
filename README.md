@@ -115,8 +115,12 @@ You can also use curl to get it
     curl localhost:8600/ca/certificate?format=file > ca.crt
 
 
+### For Docker User
+
+    docker pull waitingkuo/sbuca
+    docker run sbuca -p 8600:8600 sbuca server
+
 ## TODO
 
 1. password protection
 2. admin fuctions: delete, delete all, get all, reset, ...
-3. Dockerfile
