@@ -18,11 +18,11 @@ Generate a Rsa Key
 
 Generate a Certificate Request
 
-    subca gencsr --key test.key > test.csr
+    sbuca gencsr --key test.key > test.csr
 
 Submit the Certificate Request to the hosted server and get the Certificate
 
-    subca submitcsr --host try.sbuca.com:8600 > test.crt
+    sbuca submitcsr --host try.sbuca.com:8600 > test.crt
 
 In case you want to get the Certificate in another computer, you can add `--format id`, then the output will become the id (serial number) of the Certificate
 
