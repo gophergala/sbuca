@@ -12,7 +12,7 @@ import (
 )
 
 
-func Run() {
+func Run(addr string) {
   fmt.Print("start...")
 
   m := martini.Classic()
@@ -79,18 +79,16 @@ func Run() {
     if err != nil {
       panic(err)
     }
-    /*
     r.JSON(200, map[string]interface{}{
       "certificate": map[string]interface{}{
-        "id": "1",
-        "crt": "2",
-        "csr": csr,
+        "id": cert.GetSerialNumber().Int64(),
+        "crt": string(certPem),
+        //"csr": csr,
       },
     })
-    */
-    r.Data(200, certPem)
+    //r.Data(200, certPem)
   })
 
-  m.Run()
+  m.RunOnAddr(addr)
 
 }
