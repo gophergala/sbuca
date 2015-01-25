@@ -24,6 +24,23 @@ func Run(addr string) {
   m.Get("/", func() string {
     return "Hello sbuca"
   })
+  m.Get("/ca/certificate", func(params martini.Params, r render.Render) {
+    newCA, err := ca.NewCA(".")
+    if err != nil {
+      panic(err)
+    }
+
+    pem, err := newCA.Certificate.ToPEM()
+    if err != nil {
+      panic(err)
+    }
+
+    r.JSON(200, map[string]interface{}{
+      "ca": map[string]interface{}{
+        "crt": string(pem),
+      },
+    })
+  })
   m.Get("/certificates/:id", func(params martini.Params, r render.Render) {
 
     newCA, err := ca.NewCA(".")
@@ -55,7 +72,14 @@ func Run(addr string) {
       return
     }
 
-    r.Data(200, pem)
+    //r.Data(200, pem)
+    r.JSON(200, map[string]interface{}{
+      "certificate": map[string]interface{}{
+        "id": cert.GetSerialNumber().Int64(),
+        "crt": string(pem),
+        //"csr": csr,
+      },
+    })
 
   })
   m.Post("/certificates", func(req *http.Request, params martini.Params, r render.Render) {

@@ -158,8 +158,76 @@ func main() {
 
     {
       Name: "getcrt",
+      Flags: []cli.Flag {
+        cli.StringFlag {
+          Name: "host",
+          Usage: "Host ip & port",
+        },
+      },
       Usage: "Get a Certificate from CA and output to STDOUT",
       Action: func (c *cli.Context){
+
+        host := c.String("host")
+        if host == "" {
+          fmt.Fprintln(os.Stderr, "[ERROR] Requere host as parameter")
+          return
+        }
+
+        args := c.Args()
+        if len(args) == 0 {
+          fmt.Fprintln(os.Stderr, "[ERROR] Should provide id (same as serial number)")
+          return
+        }
+        id := c.Args().First()
+
+        resp, err := http.Get("http://" + host + "/certificates/" + id)
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to request: " + err.Error())
+          return
+        }
+
+        decoder := json.NewDecoder(resp.Body)
+        respData := make(map[string]map[string]interface{})
+        if err := decoder.Decode(&respData); err != nil {
+          panic(err)
+        }
+
+        fmt.Print(respData["certificate"]["crt"])
+
+      },
+    },
+
+    {
+      Name: "getcacrt",
+      Flags: []cli.Flag {
+        cli.StringFlag {
+          Name: "host",
+          Usage: "Host ip & port",
+        },
+      },
+      Usage: "Get CA's Certificate and output to STDOUT",
+      Action: func (c *cli.Context){
+
+        host := c.String("host")
+        if host == "" {
+          fmt.Fprintln(os.Stderr, "[ERROR] Requere host as parameter")
+          return
+        }
+
+        resp, err := http.Get("http://" + host + "/ca/certificate")
+        if err != nil {
+          fmt.Fprintln(os.Stderr, "[ERROR] Failed to request: " + err.Error())
+          return
+        }
+
+        decoder := json.NewDecoder(resp.Body)
+        respData := make(map[string]map[string]interface{})
+        if err := decoder.Decode(&respData); err != nil {
+          panic(err)
+        }
+
+        fmt.Print(respData["ca"]["crt"])
+
       },
     },
 
