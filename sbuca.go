@@ -93,9 +93,9 @@ func main() {
           Usage: "Host ip & port",
         },
         cli.StringFlag {
-          Name: "output",
+          Name: "format",
           Value: "cert",
-          Usage: "output data: cert(default) or id",
+          Usage: "output cert or id",
         },
       },
       Action: func (c *cli.Context){
@@ -105,9 +105,9 @@ func main() {
           return
         }
 
-        output := c.String("output")
-        if output != "cert" && output != "id" {
-          fmt.Fprintln(os.Stderr, "[ERROR] output should be 'cert' or 'id'")
+        format := c.String("format")
+        if format != "cert" && format != "id" {
+          fmt.Fprintln(os.Stderr, "[ERROR] format should be 'cert' or 'id'")
           return
         }
 
